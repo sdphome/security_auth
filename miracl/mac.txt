@@ -1,0 +1,7 @@
+On a MAC using GCC, use the flag
+
+-mdynamic-no-pic
+
+when compiling MIRACL assembly language modules..
+
+(Thanks Augusto)
