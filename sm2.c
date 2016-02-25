@@ -200,7 +200,7 @@ void key_test()
 
 
 }
-#if 0
+#if 1
 int main()
 {
 	int rlen, slen, rv;
@@ -302,7 +302,7 @@ int main()
 
 }
 
-#endif
+#else
 
 int main()
 {
@@ -353,6 +353,6 @@ int main()
 	printf("ret = %d \n",ret);
 }
 
-
+#endif
 
 
