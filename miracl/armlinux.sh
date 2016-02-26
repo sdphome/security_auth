@@ -1,10 +1,9 @@
 #!/bin/bash
 
-CC=arm-linux-gcc
-#CC=arm-linux-g++
-AR=arm-linux-ar
-LD=arm-linux-ld
-RANLIB=arm-linux-ranlib
+CC=${CROSS_COMPILE}gcc
+AR=${CROSS_COMPILE}ar
+LD=${CROSS_COMPILE}ld
+RANLIB=${CROSS_COMPILE}ranlib
 
 #LIB=libsm2_x86.a
 #rm $LIB
