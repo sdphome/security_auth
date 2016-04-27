@@ -103,7 +103,7 @@ unsigned char enkey[32] = {
 
 
 #define SEED_CONST 0x1BD8C95A
-
+#if 0
 int sm3_e(unsigned char *userid, int userid_len, unsigned char *xa, int xa_len, unsigned char *ya, int ya_len, unsigned char *msg, int msg_len, unsigned char *e)
 {
 /*
@@ -164,7 +164,6 @@ int sm3_e(unsigned char *userid, int userid_len, unsigned char *xa, int xa_len, 
 	return 0;
 
 }
-
 
 /********************************************************/
 //               以下是P域上的ECC函数                   //
@@ -231,27 +230,22 @@ void sm2_keygen(unsigned char *wx, int *wxlen, unsigned char *wy, int *wylen,uns
 	epoint_free(g);
 	mirexit();
 }
+#endif
 
 
-void sm2_sign(unsigned char *hash,int hashlen,unsigned char *privkey,int privkeylen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen)
+void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen)
 {
-/*
-功能：SM2签名
-[输入] hash：    sm3_e()的结果
-[输入] hashlen： hash的字节数，应为32
-[输入] privkey： 私钥
-[输入] privkeylen： privkeylen的字节数
- 
-[输出] cr：  签名结果的第一部分，不足32字节在前面加0x00。
-[输出] rlen：cr的字节数，32
-[输出] cs：  签名结果的第二部分，不足32字节在前面加0x00。
-[输出] slen：cs的字节数，32
-*/
 	struct FPECC *cfig = &Ecc256;
     big e, r, s, k;
     big a,b,p,n,x,y,key1;
     epoint *g;
     miracl *mip = mirsys(20, 0);
+
+	char privkey[32] = {0xd4, 0xa0, 0x3d, 0x62, 0xa4, 0xb8, 0xd4, 0x1f, 0x3d, 0xaa,
+                    0xd5, 0x02, 0x97, 0xfd, 0x2d, 0xdd, 0xb4, 0x36, 0xdb, 0x18,
+                    0xa6, 0x61, 0x4a, 0x3a, 0x88, 0xdf, 0x3a, 0x10, 0x20, 0xbd, 0xb6, 0xc9};
+
+	int privkeylen = 32;
 
 	mip->IOBASE = 16;
 	e = mirvar(0); 
@@ -476,6 +470,7 @@ exit_sm2_verify:
 
 }
 
+#if 0
 int kdf(unsigned char *zl, unsigned char *zr, int klen, unsigned char *kbuf)
 {
 /*
@@ -795,7 +790,7 @@ exit_sm2_decrypt:
 
 	return ret;
 }
-
+#endif
 
 #if SM2_DEBUG   
 #else
