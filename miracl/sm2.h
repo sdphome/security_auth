@@ -4,7 +4,7 @@
 #include "miracl.h"
 //#include "sm3.h"
 
-
+#if 0
 int sm3_e(unsigned char *userid, int userid_len, unsigned char *xa, int xa_len, unsigned char *ya, int ya_len, unsigned char *msg, int msg_len, unsigned char *e);
 /*
 功能：根据用户ID及公钥，求用于签名或验签的消息HASH值
@@ -33,7 +33,7 @@ void sm2_keygen(unsigned char *wx,int *wxlen, unsigned char *wy,int *wylen,unsig
 [输出] privkey：私钥，不足32字节在前面加0x00
 [输出] privkeylen： privkey的字节数，32
 */
-
+#endif
 void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen);
 /*
 功能：SM2签名
@@ -47,7 +47,7 @@ void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsign
 [输出] cs：  签名结果的第二部分，不足32字节在前面加0x00。
 [输出] slen：cs的字节数，32
 */
-
+#if 0
 int  sm2_verify(unsigned char *hash,int hashlen,unsigned char  *cr,int rlen,unsigned char *cs,int slen, unsigned char *wx,int wxlen, unsigned char *wy,int wylen);
 /*
 功能：验证SM2签名
@@ -232,4 +232,5 @@ void sm2_keyagreement_b10(
 返回值：无
 	
 */
+#endif
 #endif

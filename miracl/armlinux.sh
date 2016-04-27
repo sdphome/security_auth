@@ -45,7 +45,7 @@ $CC -fPIC -c -O2 mrebrick.c
 $CC -fPIC -c -O2 mrgf2m.c
 $CC -fPIC -c -O2 mrec2m.c
 $CC -fPIC -c -O2 mrsroot.c
-$CC -fPIC -c -O2 sm3.c
+#$CC -fPIC -c -O2 sm3.c
 $CC -fPIC -c -O2 sm2.c
 #$AR r $LIB mrio1.o mrio2.o mrjack.o mrgcd.o mrxgcd.o mrarth3.o mrbits.o mrzzn3.o
 #$AR r $LIB mrrand.o mrprime.o mrcrt.o mrscrt.o mrmonty.o mrcurve.o mrzzn2.o mrzzn2b.o mrsroot.o
@@ -55,4 +55,5 @@ $CC -fPIC -c -O2 sm2.c
 #$CC -I. -O2  brent.c $LIB -o brent
 #$CC -I. -O2  sm2_test.c $LIB -o test
 $AR -rcv libsm2.a *.o
-#rm mr*.o sm*.o
+#$CC -fPIC -shared -o libsm2.so *.o
+rm mr*.o sm*.o
