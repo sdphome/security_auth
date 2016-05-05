@@ -4,6 +4,9 @@
 #include "miracl.h"
 //#include "sm3.h"
 
+#define FAILED		1
+#define NO_ERROR	0
+
 #if 0
 int sm3_e(unsigned char *userid, int userid_len, unsigned char *xa, int xa_len, unsigned char *ya, int ya_len, unsigned char *msg, int msg_len, unsigned char *e);
 /*
@@ -34,7 +37,7 @@ void sm2_keygen(unsigned char *wx,int *wxlen, unsigned char *wy,int *wylen,unsig
 [输出] privkeylen： privkey的字节数，32
 */
 #endif
-void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen);
+//void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen);
 /*
 功能：SM2签名
 [输入] hash：    sm3_e()的结果

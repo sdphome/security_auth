@@ -55,5 +55,5 @@ $CC -fPIC -c -O2 sm2.c
 #$CC -I. -O2  brent.c $LIB -o brent
 #$CC -I. -O2  sm2_test.c $LIB -o test
 $AR -rcv libsm2.a *.o
-#$CC -fPIC -shared -o libsm2.so *.o
+$CC -fPIC -shared -o libsm2.so *.o
 rm mr*.o sm*.o

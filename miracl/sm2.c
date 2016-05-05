@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <time.h>
+#include <stdint.h>
+#include <sys/time.h>
 #include "sm2.h"
 
 #define SM2_PAD_ZERO TRUE
@@ -23,6 +25,19 @@ char *n;
 char *x;
 char *y;
 };
+
+#define SECURITY_PACK_HDR_SIZE          5
+
+//7.6.1
+typedef struct {
+    uint8_t host_rand[8];
+    uint8_t sec_rand[8];
+    uint64_t serial;
+    uint64_t reserve;
+    uint8_t sign[64];
+    uint8_t x509[0];
+} __attribute__ ((packed)) auth_data_param;
+#define AUTH_DATA_PARAM_SIZE            96
 
 #if SM2_DEBUG
 
@@ -104,7 +119,7 @@ unsigned char enkey[32] = {
 
 #define SEED_CONST 0x1BD8C95A
 
-void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen)
+static void sm2_sign(unsigned char *hash,int hashlen,unsigned char *cr,int *rlen,unsigned char *cs,int *slen)
 {
 	struct FPECC *cfig = &Ecc256;
     big e, r, s, k;
@@ -227,4 +242,142 @@ sm2_sign_again:
 	mirkill(key1);
     epoint_free(g);
 	mirexit();
+}
+
+//------------------------------------------------------------------------------------------
+// For security module
+
+static int file_get_size(const char *path, unsigned long *filesize)
+{
+	FILE *fp = NULL;
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		printf("can't open %s.\n", path);
+		return -FAILED;
+	}
+
+	fseek(fp, 0L, SEEK_END);
+	*filesize = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+	fclose(fp);
+
+	return NO_ERROR;
+}
+
+static int file_read_data(uint8_t * buf, FILE * fp, unsigned long size)
+{
+	int ret = NO_ERROR;
+	unsigned long nrd = 0;
+
+	if (fp == NULL || size == 0)
+		return -FAILED;
+
+	nrd = fread(buf, size, 1, fp);
+
+	if (nrd < 0) {
+		printf("%s: nrd=%ld, size=%ld.\n", __func__, nrd, size);
+		ret = -FAILED;
+	}
+
+	return ret;
+}
+
+static void security_reverse_32(uint8_t * buf)
+{
+	int i;
+	uint8_t temp;
+
+	for (i = 0; i < 16; i ++) {
+		temp = buf[i];
+		buf[i] = buf[31 - i];
+		buf[31 - i] = temp;
+	}
+}
+
+static int security_digi_sign(auth_data_param * param)
+{
+	int ret = NO_ERROR;
+	uint8_t message[32] = { 0 };
+	int rlen, slen;
+
+	memcpy(message, (uint8_t *) & param->host_rand, 8);
+	memcpy(message + 8, (uint8_t *) & param->sec_rand, 8);
+	memcpy(message + 16, (uint8_t *) & param->serial, 8);
+	memcpy(message + 24, (uint8_t *) & param->reserve, 8);
+	security_reverse_32(message);
+
+	sm2_sign(message, 32, param->sign, &rlen, param->sign + 32, &slen);
+
+	security_reverse_32(param->sign);
+	security_reverse_32(param->sign + 32);
+
+	return ret;
+}
+
+/*
+	input::
+	serial: reader serial
+	sec_rand : the rand number which read from security module
+	cert_path: x509 certificate path
+	data: the data need to send to security module(7.6.1)
+	output::
+	the valid len of *data, 0 is error.
+
+	Need free the data in the upper level if return not equal 0.
+*/
+uint16_t security_pack_sign_data(uint64_t serial, uint64_t sec_rand, char * cert_path, uint8_t ** data)
+{
+	int ret = 0;
+	uint16_t len = 0;
+	unsigned long size = -1;
+	FILE *fp = NULL;
+	auth_data_param *param = NULL;
+
+	if (cert_path == NULL)
+		return 0;
+
+	ret = file_get_size(cert_path, &size);
+	if (ret < 0 || size > 1500 - AUTH_DATA_PARAM_SIZE - SECURITY_PACK_HDR_SIZE) {
+		printf("%s: x509 size error, size = %ld.\n", __func__, size);
+		return 0;
+	}
+
+	param = (auth_data_param *) malloc(AUTH_DATA_PARAM_SIZE + size);
+	if (param == NULL) {
+		printf("%s: can't malloc memory for param\n", __func__);
+		return 0;
+	}
+
+	srand((unsigned)time(NULL));
+	*(uint64_t *) param->host_rand = (uint64_t) rand() << 32 | (uint64_t) rand();
+
+	memcpy(param->sec_rand, &sec_rand, 8);
+	param->serial = serial;
+	param->reserve = 0;
+
+	ret = security_digi_sign(param);
+	if (ret != 0) {
+		free(param);
+		printf("%s: sign failed\n", __func__);
+		return 0;
+	}
+
+	fp = fopen(cert_path, "r");
+	if (fp == NULL) {
+		printf("read data. fp is null.\n");
+		free(param);
+		return 0;
+	}
+	ret = file_read_data(param->x509, fp, size);
+	if (ret != NO_ERROR) {
+		printf("%s: read x509 failed.\n", __func__);
+		fclose(fp);
+		free(param);
+		return 0;
+	}
+	fclose(fp);
+
+	*data = (uint8_t *)param;
+	return (uint16_t)(AUTH_DATA_PARAM_SIZE + size);
 }
